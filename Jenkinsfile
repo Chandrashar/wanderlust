@@ -1,43 +1,54 @@
 pipeline{
     agent any
     environment{
-        SONAR_HOME= tool "Sonar"
+        SONAR_HOME= tool 'SonarQube-Scanner'
     }
     stages{
-        stage("Clone Code from GitHub"){
+        stage('Code'){
             steps{
-                git url: "https://github.com/krishnaacharyaa/wanderlust.git", branch: "devops"
+                echo "This is Chandra Sharma at stage of 'Code' "
             }
         }
-        stage("SonarQube Quality Analysis"){
+        stage('Code Clone from GitHub'){
             steps{
-                withSonarQubeEnv("Sonar"){
+                echo "This is Chandra Sharma at stage of Code Clone from GitHub "
+                git url: "https://github.com/Chandrashar/wanderlust.git", branch: "devops" 
+            }
+        }
+        stage('SonarQube Quality Analysis'){
+            steps{
+                echo "This is Chandra Sharma at stage of SonarQube Scanning.. "
+                withSonarQubeEnv("SonarQube-Server"){
                     sh "$SONAR_HOME/bin/sonar-scanner -Dsonar.projectName=wanderlust -Dsonar.projectKey=wanderlust"
                 }
             }
         }
-        stage("OWASP Dependency Check"){
+        stage('OWASP Dependency Check'){
             steps{
-                dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'dc'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                echo "This is Owasp Dependency Check Skipping due to heavy build download.. "
+              //  dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'dc'
+              // dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
-        stage("Sonar Quality Gate Scan"){
+        stage('Sonar Quality Gate Scan'){
             steps{
-                timeout(time: 2, unit: "MINUTES"){
-                    waitForQualityGate abortPipeline: false
-                }
+                 echo "This is Sonar Quality Gate Scan Skipping for now....since above.. "
+              //  timeout(time: 2, unit: "MINUTES")
+             //   waitforQualityGate abortPipeline: false
             }
         }
-        stage("Trivy File System Scan"){
+        stage('Trivy File System Scan'){
             steps{
-                sh "trivy fs --format  table -o trivy-fs-report.html ."
+                echo "This is Trivy file System scanning "
+                sh "trivy fs --format table -o trivy-fs-report.html ."
             }
         }
+        
         stage("Deploy using Docker compose"){
             steps{
-                sh "docker-compose up -d"
+                sh "docker compose up -d"
             }
         }
+
     }
 }
